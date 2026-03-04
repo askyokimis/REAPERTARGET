@@ -1,0 +1,43 @@
+name: Update Commands
+
+on:
+  repository_dispatch:
+    types: [new_command]
+
+jobs:
+  add_command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Read existing commands
+        id: read_json
+        run: |
+          if [ ! -f commands.json ]; then
+            echo '{"commands":[]}' > commands.json
+          fi
+          echo "::set-output name=content::$(cat commands.json)"
+
+      - name: Merge new command
+        run: |
+          NEW_CMD='${{ github.event.client_payload.command }}'
+          python3 <<EOF
+import json
+
+with open("commands.json", "r") as f:
+    data = json.load(f)
+
+data["commands"].append(NEW_CMD)
+
+with open("commands.json", "w") as f:
+    json.dump(data, f, indent=2)
+EOF
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add commands.json
+          git commit -m "Add new command from dispatch"
+          git push
