@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reaper Command Sender</title>
+</head>
+<body>
+<h2>Send Command to Reaper</h2>
+<input type="text" id="commandInput" placeholder="Write command here">
+<button onclick="sendCommand()">Send</button>
+
+<script>
+async function sendCommand() {
+    const command = document.getElementById('commandInput').value;
+    if (!command) return alert("Command is empty");
+
+    const repo = "YOUR_REPO_NAME";
+    const owner = "YOUR_USERNAME";
+    const token = "YOUR_PERSONAL_ACCESS_TOKEN";
+    const url = `https://api.github.com/repos/${owner}/${repo}/dispatches`;
+
+    const body = {
+        event_type: "new_command",
+        client_payload: { command: command }
+    };
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `token ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (response.ok) {
+        alert("Command sent successfully!");
+        document.getElementById('commandInput').value = "";
+    } else {
+        alert("Error sending command: " + response.statusText);
+    }
+}
+</script>
+</body>
+</html>
